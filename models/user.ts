@@ -18,13 +18,11 @@ import * as utils from '../lib/utils'
 const security = require('../lib/insecurity')
 const challenges = require('../data/datacache').challenges
 
-class User extends Model<
-InferAttributes<User>,
-InferCreationAttributes<User>
-> {
+class User extends Model<InferAttributes<User>,InferCreationAttributes<User>> {
   declare id: CreationOptional<number>
   declare username: string | undefined
-  declare email: CreationOptional<string>
+  //declare email: CreationOptional<string> // old
+  private _email: Email | undefined; // new change
   declare password: CreationOptional<string>
   declare role: CreationOptional<string>
   declare deluxeToken: CreationOptional<string>
@@ -32,8 +30,38 @@ InferCreationAttributes<User>
   declare profileImage: CreationOptional<string>
   declare totpSecret: CreationOptional<string>
   declare isActive: CreationOptional<boolean>
+//newstart
+  get email(): string | undefined {
+    return this._email?.value;
+  }
+
+  set email(value: string | undefined) {
+    this._email = value === undefined ? undefined : new Email(value);
+    this.setDataValue('email', this._email?.value);
+  }
 }
 
+class Email {
+  private _value: string; 
+
+  constructor(email: string) {
+    if (!this.validateEmail(email)) {
+      throw new Error('Invalid email format');
+    }
+    this._value = email; 
+  }
+
+  private validateEmail(email: string): boolean {
+    const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    return emailRegex.test(email);
+  }
+
+  get value(): string {
+    return this._value;
+  }
+}
+
+//newend
 const UserModelInit = (sequelize: Sequelize) => { // vuln-code-snippet start weakPasswordChallenge
   User.init(
     { // vuln-code-snippet hide-start
