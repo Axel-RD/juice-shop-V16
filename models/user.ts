@@ -24,7 +24,8 @@ InferCreationAttributes<User>
 > {
   declare id: CreationOptional<number>
   declare username: string | undefined
-  declare email: CreationOptional<string>
+  //declare email: CreationOptional<string>
+  declare email: CreationOptional<Email>
   declare password: CreationOptional<string>
   declare role: CreationOptional<string>
   declare deluxeToken: CreationOptional<string>
@@ -33,6 +34,27 @@ InferCreationAttributes<User>
   declare totpSecret: CreationOptional<string>
   declare isActive: CreationOptional<boolean>
 }
+// new-start
+class Email {
+  private _value: string
+
+  constructor(email: string) {
+    if (!this.validateEmail(email)) {
+      throw new Error('Invalid email format');
+    }
+    this._value = email
+  }
+
+  private validateEmail(email: string): boolean {
+    const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/
+    return emailRegex.test(email)
+  }
+
+  get value(): string {
+    return this._value
+  }
+}
+// new-end
 
 const UserModelInit = (sequelize: Sequelize) => { // vuln-code-snippet start weakPasswordChallenge
   User.init(
@@ -68,7 +90,8 @@ const UserModelInit = (sequelize: Sequelize) => { // vuln-code-snippet start wea
           } else {
             email = security.sanitizeSecure(email)
           }
-          this.setDataValue('email', email)
+          // new-changed
+          this.setDataValue('email', new Email(email))
         }
       }, // vuln-code-snippet hide-end
       password: {
@@ -127,9 +150,10 @@ const UserModelInit = (sequelize: Sequelize) => { // vuln-code-snippet start wea
   )
 
   User.addHook('afterValidate', async (user: User) => {
+    // new-changed
     if (
-      user.email &&
-    user.email.toLowerCase() ===
+      user.email.value &&
+    user.email.value.toLowerCase() ===
       `acc0unt4nt@${config.get('application.domain')}`.toLowerCase()
     ) {
       await Promise.reject(
