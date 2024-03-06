@@ -16,10 +16,30 @@ export interface Challenge extends Model {
   tutorialOrder?: number
 }
 
+class Email {
+  private _value: string
+
+  constructor(email: string) {
+    if (!this.validateEmail(email)) {
+      throw new Error('Invalid email format');
+    }
+    this._value = email
+  }
+
+  private validateEmail(email: string): boolean {
+    const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/
+    return emailRegex.test(email)
+  }
+
+  get value(): string {
+    return this._value
+  }
+}
+
 export interface User extends Model {
   id: number
   username?: string
-  email: string
+  email: Email
   password: string
   customDomain?: string
   key: string

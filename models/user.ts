@@ -38,7 +38,7 @@ InferCreationAttributes<User>
 class Email {
   private _value: string
 
-  constructor(email: string) {
+  constructor (email: string) {
     if (!this.validateEmail(email)) {
       throw new Error('Invalid email format');
     }
@@ -79,19 +79,18 @@ const UserModelInit = (sequelize: Sequelize) => { // vuln-code-snippet start wea
       email: {
         type: DataTypes.STRING,
         unique: true,
-        set (email: string) {
+        set (email: Email) {
           if (!utils.disableOnContainerEnv()) {
             challengeUtils.solveIf(challenges.persistedXssUserChallenge, () => {
               return utils.contains(
-                email,
+                email.value,
                 '<iframe src="javascript:alert(`xss`)">'
               )
             })
           } else {
-            email = security.sanitizeSecure(email)
+            //email = security.sanitizeSecure(email)
           }
-          // new-changed
-          this.setDataValue('email', new Email(email))
+          this.setDataValue('email', email)
         }
       }, // vuln-code-snippet hide-end
       password: {
