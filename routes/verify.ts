@@ -22,7 +22,7 @@ const products = cache.products
 
 exports.emptyUserRegistration = () => (req: Request, res: Response, next: NextFunction) => {
   challengeUtils.solveIf(challenges.emptyUserRegistration, () => {
-    return req.body && req.body.email === '' && req.body.password === ''
+    return req.body && req.body.email.getValue() === '' && req.body.password === ''
   })
   next()
 }

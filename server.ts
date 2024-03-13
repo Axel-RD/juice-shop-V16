@@ -26,7 +26,7 @@ import path from 'path'
 import morgan from 'morgan'
 import colors from 'colors/safe'
 import * as utils from './lib/utils'
-import validator = require('validator');
+import { Email } from './models/user'
 
 const startTime = Date.now()
 const finale = require('finale-rest')
@@ -386,23 +386,7 @@ restoreOverwrittenFilesWithOriginals().then(() => {
     }
     next()
   })
-  */ 
-
-  
-class Email {
-  private value: string;
-
-  constructor(email: string) {
-    if (!validator.isEmail(email)) {
-      throw new Error('Invalid email format');
-    }
-    this.value = email.trim();
-  }
-
-  getValue(): string {
-    return this.value;
-  }
-}
+  */
 
 class Password {
   private value: string;
@@ -425,7 +409,7 @@ class Password {
 
   app.post('/api/Users', (req: Request, res: Response, next: NextFunction) => {
     try {
-      const email = new Email(req.body.email);
+      req.body.email = new Email(req.body.email);
       const password = new Password(req.body.password);
       const passwordRepeat = new Password(req.body.passwordRepeat);
   
