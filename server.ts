@@ -26,6 +26,7 @@ import path from 'path'
 import morgan from 'morgan'
 import colors from 'colors/safe'
 import * as utils from './lib/utils'
+import validator = require('validator');
 
 const startTime = Date.now()
 const finale = require('finale-rest')
@@ -369,6 +370,10 @@ restoreOverwrittenFilesWithOriginals().then(() => {
   /* Captcha Bypass challenge verification */
   app.post('/api/Feedbacks', verify.captchaBypassChallenge())
   /* User registration challenge verifications before finale takes over */
+
+
+  /* OLD OLD
+  
   app.post('/api/Users', (req: Request, res: Response, next: NextFunction) => {
     if (req.body.email !== undefined && req.body.password !== undefined && req.body.passwordRepeat !== undefined) {
       if (req.body.email.length !== 0 && req.body.password.length !== 0) {
@@ -381,6 +386,63 @@ restoreOverwrittenFilesWithOriginals().then(() => {
     }
     next()
   })
+  */ 
+
+  
+class Email {
+  private value: string;
+
+  constructor(email: string) {
+    if (!validator.isEmail(email)) {
+      throw new Error('Invalid email format');
+    }
+    this.value = email.trim();
+  }
+
+  getValue(): string {
+    return this.value;
+  }
+}
+
+class Password {
+  private value: string;
+
+  constructor(password: string) {
+    if (password.trim().length < 6) { 
+      throw new Error('Password must be at least 6 characters');
+    }
+    this.value = password.trim();
+  }
+
+  getValue(): string {
+    return this.value;
+  }
+
+  static compare(password: Password, repeat: Password): boolean {
+    return password.value === repeat.value;
+  }
+}
+
+  app.post('/api/Users', (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const email = new Email(req.body.email);
+      const password = new Password(req.body.password);
+      const passwordRepeat = new Password(req.body.passwordRepeat);
+  
+      if (!Password.compare(password, passwordRepeat)) {
+        return res.status(400).send('Passwords do not match');
+      }
+  
+      next();
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).send(error.message);
+      } else {
+        res.status(500).send('An unexpected error occurred');
+      }
+    }
+  });
+
   app.post('/api/Users', verify.registerAdminChallenge())
   app.post('/api/Users', verify.passwordRepeatChallenge()) // vuln-code-snippet hide-end
   app.post('/api/Users', verify.emptyUserRegistration())
