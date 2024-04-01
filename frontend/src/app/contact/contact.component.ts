@@ -16,6 +16,26 @@ import { SnackBarHelperService } from '../Services/snack-bar-helper.service'
 
 library.add(faStar, faPaperPlane)
 
+// NEW domain primitive for "Rating"
+class Rating {
+  private value: number;
+
+  constructor(inputValue: number) {
+    this.setValue(inputValue)
+  }
+
+  setValue(inputValue: number) {
+    if (inputValue < 1 || inputValue > 5) {
+      throw new Error('Rating must be between 1 and 5');
+    }
+    this.value = inputValue;
+  }
+
+  getValue(): number {
+    return this.value;
+  }
+}
+
 @Component({
   selector: 'app-contact',
   templateUrl: './contact.component.html',
@@ -26,7 +46,7 @@ export class ContactComponent implements OnInit {
   public feedbackControl: UntypedFormControl = new UntypedFormControl('', [Validators.required, Validators.maxLength(160)])
   public captchaControl: UntypedFormControl = new UntypedFormControl('', [Validators.required, Validators.pattern('-?[\\d]*')])
   public userIdControl: UntypedFormControl = new UntypedFormControl('', [])
-  public rating: number = 0
+  public rating: number = 1 // CHANGED FROM 0 TO 1 SINCE DOMAIN DOES NOT ALLOW RATING TO BE 0
   public feedback: any = undefined
   public captcha: any
   public captchaId: any
@@ -64,7 +84,8 @@ export class ContactComponent implements OnInit {
     this.feedback.captcha = this.captchaControl.value
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     this.feedback.comment = `${this.feedbackControl.value} (${this.authorControl.value})`
-    this.feedback.rating = this.rating
+    let inputRating = new Rating(this.rating)
+    this.feedback.rating = inputRating.getValue()
     this.feedback.UserId = this.userIdControl.value
     this.feedbackService.save(this.feedback).subscribe((savedFeedback) => {
       if (savedFeedback.rating === 5) {
@@ -98,7 +119,7 @@ export class ContactComponent implements OnInit {
     this.feedbackControl.markAsUntouched()
     this.feedbackControl.markAsPristine()
     this.feedbackControl.setValue('')
-    this.rating = 0
+    this.rating = 1
     this.captchaControl.markAsUntouched()
     this.captchaControl.markAsPristine()
     this.captchaControl.setValue('')
