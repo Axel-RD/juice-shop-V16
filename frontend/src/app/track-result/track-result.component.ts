@@ -20,6 +20,21 @@ export enum Status {
   Delivered
 }
 
+//NEW
+export class OrderNo {
+  private value: string;
+
+  constructor(searchValue: string) {
+    const regex = /[<>]/g;
+    const sanitizedValue = searchValue.replace(regex, '').trim();
+    this.value = sanitizedValue;
+  }
+
+  getValue(): string {
+    return this.value;
+  }
+}
+
 @Component({
   selector: 'app-track-result',
   templateUrl: './track-result.component.html',
@@ -39,7 +54,9 @@ export class TrackResultComponent implements OnInit {
     this.trackOrderService.find(this.orderId).subscribe((results) => {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       //this.results.orderNo = this.sanitizer.bypassSecurityTrustHtml(`<code>${results.data[0].orderId}</code>`)  // OLD
-      this.results.orderNo = this.sanitizer.sanitize(SecurityContext.HTML, `<code>${results.data[0].orderId}</code>`) // NEW
+
+      this.results.orderNo = new OrderNo(results.data[0].orderId).getValue() //NEW
+
       this.results.email = results.data[0].email
       this.results.totalPrice = results.data[0].totalPrice
       this.results.products = results.data[0].products

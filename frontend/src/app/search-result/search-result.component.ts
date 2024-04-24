@@ -35,6 +35,21 @@ interface TableEntry {
   quantity?: number
 }
 
+//NEW
+export class SearchValue {
+  private value: string;
+
+  constructor(searchValue: string) {
+    const regex = /[<>]/g;
+    const sanitizedValue = searchValue.replace(regex, '').trim();
+    this.value = sanitizedValue;
+  }
+
+  getValue(): string {
+    return this.value;
+  }
+}
+
 @Component({
   selector: 'app-search-result',
   templateUrl: './search-result.component.html',
@@ -46,7 +61,7 @@ export class SearchResultComponent implements OnDestroy, AfterViewInit {
   public pageSizeOptions: number[] = []
   public dataSource!: MatTableDataSource<TableEntry>
   public gridDataSource!: any
-  public searchValue?: SafeHtml
+  public searchValue?: SearchValue
   public resultsLength = 0
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator | null = null
   private readonly productSubscription?: Subscription
@@ -149,7 +164,9 @@ export class SearchResultComponent implements OnDestroy, AfterViewInit {
       }) // vuln-code-snippet hide-end
       this.dataSource.filter = queryParam.toLowerCase()
       //this.searchValue = this.sanitizer.bypassSecurityTrustHtml(queryParam) // vuln-code-snippet vuln-line localXssChallenge xssBonusChallenge
-      this.searchValue = this.sanitizer.sanitize(SecurityContext.HTML, queryParam) // NEW: Sanitize search query instead of bypassing security
+
+      this.searchValue = new SearchValue(queryParam) // NEW
+
       this.gridDataSource.subscribe((result: any) => {
         if (result.length === 0) {
           this.emptyState = true
